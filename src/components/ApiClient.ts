@@ -1,5 +1,4 @@
-import { IApi } from "../../types";
-import { TProductList, IOrderResponse, IOrderRequest } from "../../types";
+import { IApi, TProductList, IOrderResponse, IOrderRequest } from "../types";
 
 export class ApiClient {
   private api: IApi;

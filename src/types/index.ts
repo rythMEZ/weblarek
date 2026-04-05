@@ -21,6 +21,9 @@ export type IOrderResponse = {
   total: number; // сумма заказа
 };
 
+// Тип объекта, для получения информации о валидации полей
+export type TErrorsBuyer = Partial<Record<keyof IBuyer, string>>;
+
 export interface IApi {
   get<T extends object>(uri: string): Promise<T>;
   post<T extends object>(

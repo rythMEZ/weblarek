@@ -1,22 +1,12 @@
-import { IBuyer, TPayment } from "../../types";
+import { IBuyer, TPayment, TErrorsBuyer } from "../../types";
 
 export class Buyer {
-  private payment: TPayment;
-  private address: string;
-  private phone: string;
-  private email: string;
+  private payment: TPayment = "";
+  private address: string = "";
+  private phone: string = "";
+  private email: string = "";
 
-  constructor(
-    payment: TPayment,
-    address: string,
-    phone: string,
-    email: string,
-  ) {
-    this.payment = payment;
-    this.address = address;
-    this.phone = phone;
-    this.email = email;
-  }
+  constructor() {}
 
   setPayment(payment: TPayment): void {
     this.payment = payment;
@@ -49,18 +39,8 @@ export class Buyer {
     this.email = "";
   }
 
-  valid(): {
-    payment?: string;
-    address?: string;
-    phone?: string;
-    email?: string;
-  } {
-    const errors: {
-      payment?: string;
-      address?: string;
-      phone?: string;
-      email?: string;
-    } = {};
+  valid(): TErrorsBuyer {
+    const errors: TErrorsBuyer = {};
 
     if (this.payment === "") {
       errors.payment = "Не выбран вид оплаты";

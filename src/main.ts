@@ -3,22 +3,15 @@ import { ProductCatalog } from "./components/models/ProductCatalog";
 import { Cart } from "./components/models/Cart";
 import { Buyer } from "./components/models/Buyer";
 import { apiProducts } from "./utils/data";
-import { TPayment } from "./types";
 import { API_URL } from "./utils/constants";
-import { ApiClient } from "./components/base/ApiClient";
+import { ApiClient } from "./components/ApiClient";
 import { Api } from "./components/base/Api";
 
 //Проверка классов и их методов
 const ID = "854cef69-976d-4c2a-a18c-2aa45046c390";
-const user = {
-  payment: "",
-  address: "",
-  phone: "",
-  email: "",
-};
 
 // Проверка работы класса ProductCatalog и его методов
-const productsModel = new ProductCatalog(apiProducts.items);
+const productsModel = new ProductCatalog();
 
 productsModel.setItems(apiProducts.items);
 productsModel.setSelectedItem(apiProducts.items[1]);
@@ -28,15 +21,18 @@ console.log(`Товар из каталога:`, productsModel.getSelectedItem()
 console.log(`Получение товара по ID`, productsModel.getItemById(ID));
 
 // Проверка работы класса Cart и его методов
-const cartModel = new Cart(apiProducts.items);
+const cartModel = new Cart();
 
 console.log(`Массив всех товаров в корзине`, cartModel.getItems());
 
+cartModel.add(apiProducts.items[0]);
+cartModel.add(apiProducts.items[0]);
+cartModel.add(apiProducts.items[1]);
+cartModel.add(apiProducts.items[2]);
+console.log(`Проверка добавления товара в корзину`, cartModel.getItems());
+
 cartModel.remove(apiProducts.items[1]);
 console.log(`Проверка удаления товара из корзины`, cartModel.getItems());
-
-cartModel.add(apiProducts.items[1]);
-console.log(`Проверка добавления товара в корзину`, cartModel.getItems());
 
 console.log(`Сумма заказа`, cartModel.getTotalValue());
 console.log(`Количество товаров в корзине`, cartModel.getCount());
@@ -49,12 +45,7 @@ cartModel.clear();
 console.log(`Очистка корзины`, cartModel.getItems());
 
 // Проверка работы класса Buer и его методов
-const buyerModel = new Buyer(
-  user.payment as TPayment,
-  user.address,
-  user.phone,
-  user.email,
-);
+const buyerModel = new Buyer();
 
 buyerModel.setPayment("card");
 buyerModel.setAddress("119180, Bryansk, Polyanka 15");
@@ -72,8 +63,17 @@ console.log(`Валидация данных`, buyerModel.valid());
 
 // Проверка работы класс ApiClient
 const api = new Api(API_URL);
-const apiclient = new ApiClient(api);
-const products = await apiclient.getProducts();
-const serverProducts = new ProductCatalog(products.items);
+const apiClient = new ApiClient(api);
+const serverProducts = new ProductCatalog();
 
-console.log(`Данные с сервера`, serverProducts);
+async function init() {
+  try {
+    const products = await apiClient.getProducts();
+    serverProducts.setItems(products.items);
+    console.log(`Данные с сервера`, serverProducts.getItems());
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+init();

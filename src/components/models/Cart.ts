@@ -3,9 +3,7 @@ import { IProduct } from "../../types";
 export class Cart {
   private items: IProduct[] = [];
 
-  constructor(items: IProduct[]) {
-    this.items = items;
-  }
+  constructor() {}
 
   getItems(): IProduct[] {
     return this.items;
