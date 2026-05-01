@@ -48,3 +48,58 @@ export interface IBuyer {
   email: string;
   phone: string;
 }
+
+export interface ICardActions {
+  onClick?: () => void;
+}
+
+export type TCard = Pick<IProduct, "title" | "price">;
+
+export type TCardBasket = TCard & {
+  index: number;
+};
+
+export type TCardCatalog = TCard & Pick<IProduct, "image" | "category">;
+
+export type TForm = {
+  valid: boolean;
+  errors: string[];
+};
+
+export type TFormContact = TForm & {
+  email: string;
+  phone: string;
+};
+
+export type TFormOrder = TForm & {
+  address: string;
+  payment: string;
+};
+
+
+export interface IBasket {
+  items: HTMLElement[];
+  total: number;
+  isDisabled: boolean;
+}
+
+export interface IGallery {
+  catalog: HTMLElement[];
+}
+
+export interface IHeader {
+  counter: number;
+}
+
+export interface IModal {
+  content: HTMLElement;
+}
+
+export interface ISuccess {
+  amount: number;
+}
+
+export type TCardFull = Omit<IProduct, "id"> & {
+  isInBasket: boolean;
+  isDisabled: boolean;
+};

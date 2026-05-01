@@ -1,4 +1,5 @@
 import { IBuyer, TPayment, TErrorsBuyer } from "../../types";
+import { IEvents } from "../base/Events";
 
 export class Buyer {
   private payment: TPayment = "";
@@ -6,23 +7,28 @@ export class Buyer {
   private phone: string = "";
   private email: string = "";
 
-  constructor() {}
+  constructor(protected events: IEvents) {}
 
   setPayment(payment: TPayment): void {
     this.payment = payment;
+    this.events.emit("buyer:changed");
   }
 
   setAddress(address: string): void {
     this.address = address;
+    this.events.emit("buyer:changed");
   }
 
   setPhone(phone: string): void {
     this.phone = phone;
+    this.events.emit("buyer:changed");
   }
 
   setEmail(email: string): void {
     this.email = email;
+    this.events.emit("buyer:changed");
   }
+
   getInfo(): IBuyer {
     return {
       payment: this.payment,
@@ -39,22 +45,20 @@ export class Buyer {
     this.email = "";
   }
 
-  valid(): TErrorsBuyer {
+  validOrder(): TErrorsBuyer {
     const errors: TErrorsBuyer = {};
 
-    if (this.payment === "") {
-      errors.payment = "Не выбран вид оплаты";
-    }
-    if (this.address === "") {
-      errors.address = "Не указан адрес доставки";
-    }
-    if (this.phone === "") {
-      errors.phone = "Не указан номер телефона";
-    }
+    if (!this.payment) errors.payment = "Не выбран вид оплаты";
+    if (!this.address) errors.address = "Не указан адрес доставки";
 
-    if (this.email === "") {
-      errors.email = "Не указан адрес электронной почты";
-    }
+    return errors;
+  }
+
+  validContact(): TErrorsBuyer {
+    const errors: TErrorsBuyer = {};
+
+    if (!this.phone) errors.phone = "Не указан номер телефона";
+    if (!this.email) errors.email = "Не указан адрес электронной почты";
 
     return errors;
   }
