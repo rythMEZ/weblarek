@@ -43,20 +43,14 @@ export class Buyer {
     this.address = "";
     this.phone = "";
     this.email = "";
+    this.events.emit("buyer:changed");
   }
 
-  validOrder(): TErrorsBuyer {
+  valid(): TErrorsBuyer {
     const errors: TErrorsBuyer = {};
 
     if (!this.payment) errors.payment = "Не выбран вид оплаты";
     if (!this.address) errors.address = "Не указан адрес доставки";
-
-    return errors;
-  }
-
-  validContact(): TErrorsBuyer {
-    const errors: TErrorsBuyer = {};
-
     if (!this.phone) errors.phone = "Не указан номер телефона";
     if (!this.email) errors.email = "Не указан адрес электронной почты";
 

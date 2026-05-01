@@ -1,6 +1,7 @@
 import { ensureElement } from "../../../utils/utils";
 import { Component } from "../../base/Component";
-import { TForm } from "../../../types";
+import { TForm, TErrorsBuyer } from "../../../types";
+
 
 export abstract class Form<T extends TForm> extends Component<T> {
   protected submitButton: HTMLButtonElement;
@@ -30,7 +31,8 @@ export abstract class Form<T extends TForm> extends Component<T> {
     this.submitButton.disabled = !value;
   }
 
-  set errors(value: string[]) {
-    this.errorElement.textContent = value.join(", ");
+  set errors(value: TErrorsBuyer) {
+    const messages = Object.values(value)
+    this.errorElement.textContent = messages.join(" ");
   }
 }

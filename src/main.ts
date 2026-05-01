@@ -58,10 +58,13 @@ const gallery = new Gallery(galleryConatiner);
 const header = new Header(events, headerContainer);
 const modal = new Modal(events, modalContainer);
 
-// Константы
+// Константы и переменные
+const card = new CardFull(cloneTemplate(cardPreviewTemplate), events);
 const basket = new Basket(cloneTemplate(basketTemplate), events);
 const formOrder = new FormOrder(cloneTemplate(orderTemplate), events);
 const formContact = new FormContact(cloneTemplate(contactsTemplate), events);
+const success = new OrderSuccess(cloneTemplate(successOrderTemplate), events);
+let isOrderCompleted = false;
 
 // Вспомогательная функция рендера корзины
 const renderBasket = () => {
@@ -83,13 +86,13 @@ const renderBasket = () => {
 
 // Каталог
 events.on("catalog:changed", () => {
-  const itemCard = productsModel.getItems().map((item) => {
+  const itemCards = productsModel.getItems().map((item) => {
     const card = new CardCatalog(cloneTemplate(cardCatalogTemplate), {
       onClick: () => events.emit("card:select", item),
     });
     return card.render(item);
   });
-  gallery.render({ catalog: itemCard });
+  gallery.render({ catalog: itemCards });
 });
 
 // Выбор карточки
@@ -105,15 +108,6 @@ events.on("preview:open", () => {
 
   const isInBasket = cartModel.hasProductById(item.id);
 
-  const card = new CardFull(cloneTemplate(cardPreviewTemplate), {
-    onClick: () => {
-      if (isInBasket) {
-        events.emit("basket:remove-from-preview", item);
-      } else {
-        events.emit("basket:add", item);
-      }
-    },
-  });
   modal.render({
     content: card.render({
       ...item,
@@ -139,27 +133,32 @@ events.on("basket:open", () => {
 // Изменение корзины при добавлении товара в корзину
 events.on("basket:changed", () => {
   header.render({ counter: cartModel.getCount() });
+  if (isOrderCompleted) return;
+  renderBasket();
 });
 
-// Добавление и удаление товаров из корзины
-events.on("basket:add", (item: IProduct) => {
-  cartModel.add(item);
-  modal.close();
-});
+events.on("basket:toggle", () => {
+  const item = productsModel.getSelectedItem();
 
-events.on("basket:remove-from-preview", (item: IProduct) => {
-  cartModel.remove(item);
+  if (!item) return;
+
+  if (cartModel.hasProductById(item.id)) {
+    cartModel.remove(item);
+  } else {
+    cartModel.add(item);
+  }
+
   modal.close();
 });
 
 events.on("basket:remove-from-basket", (item: IProduct) => {
   cartModel.remove(item);
-  renderBasket();
 });
 
 // Открытие первой формы - Order (способ оплаты, адрес)
 events.on("order:open", () => {
   const buyer = buyerModel.getInfo();
+  formOrder.errors = {};
   modal.render({
     content: formOrder.render({
       address: buyer.address,
@@ -171,7 +170,7 @@ events.on("order:open", () => {
 // Открытие второй формы - Contact (эмейл, телефон)
 events.on("order:open-next", () => {
   const buyer = buyerModel.getInfo();
-  formContact.errors = [];
+  formContact.errors = {};
 
   modal.render({
     content: formContact.render({
@@ -184,7 +183,7 @@ events.on("order:open-next", () => {
 // Открытие модального окна с информацией об успешном заказе
 events.on("order:submit", async () => {
   const buyer = buyerModel.getInfo();
-  const success = new OrderSuccess(cloneTemplate(successOrderTemplate), events);
+  isOrderCompleted = true;
   const orderPayload: IOrderRequest = {
     ...buyer,
     items: cartModel.getItems().map((item) => String(item.id)),
@@ -198,11 +197,12 @@ events.on("order:submit", async () => {
         amount: result.total,
       }),
     });
+    cartModel.clear();
+    buyerModel.clear();
+    isOrderCompleted = false;
   } catch (err) {
     console.log(err);
   }
-
-  cartModel.clear();
 });
 
 //Обработка данных введенных пользователем
@@ -213,17 +213,19 @@ events.on("buyer:changed", () => {
   formContact.email = buyer.email;
   formContact.phone = buyer.phone;
 
-  const orderErrorsRaw = buyerModel.validOrder();
-  const contactErrorsRaw = buyerModel.validContact();
+  const errorsRaw = buyerModel.valid();
 
-  const orderErrors = Object.values(orderErrorsRaw).filter(Boolean);
-  const contactErrors = Object.values(contactErrorsRaw).filter(Boolean);
+  const orderErrors = {
+    payment: errorsRaw.payment,
+    address: errorsRaw.address,
+  };
+  const contactErrors = { email: errorsRaw.email, phone: errorsRaw.phone };
 
   formOrder.errors = orderErrors;
-  formOrder.valid = orderErrors.length === 0;
+  formOrder.valid = !errorsRaw.payment && !errorsRaw.address;
 
   formContact.errors = contactErrors;
-  formContact.valid = contactErrors.length === 0;
+  formContact.valid = !errorsRaw.email && !errorsRaw.phone;
 });
 
 events.on("payment:input", ({ payment }: { payment: TPayment }) => {
